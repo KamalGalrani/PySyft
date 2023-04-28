@@ -392,7 +392,7 @@ class SyftClient:
         from ..service.network.network_service import connection_to_route
 
         route = connection_to_route(self.connection)
-        result = self.api.services.network.add_route_for(route=route, client=client)
+        result = network.api.services.network.verify_route(route, verify_key=self.peer.verify_key)
 
         return result
 
