@@ -322,6 +322,7 @@ class NetworkService(AbstractService):
 
         # switch to the nodes signing key
         client = remote_peer.client_with_context(context=context)
+        client._fetch_api(remote_peer.credentials)
         remote_peer_metadata = client.api.services.network.add_peer(self_node_peer)
 
         if remote_peer_metadata.verify_key != remote_peer.verify_key:
