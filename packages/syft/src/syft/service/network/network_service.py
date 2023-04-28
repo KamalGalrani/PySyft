@@ -273,7 +273,7 @@ class NetworkStash(BaseUIDStoreStash):
         if existing.is_ok() and existing.ok():
             existing = existing.ok()
             existing.update_routes(peer.node_routes)
-            result = self.update(existing)
+            result = self.update(credentials, existing)
             return result
         else:
             result = self.set(credentials, peer)
@@ -322,7 +322,6 @@ class NetworkService(AbstractService):
 
         # switch to the nodes signing key
         #client = remote_peer.client_with_context(context=context)
-        #client._fetch_api(remote_peer.credentials)
         #remote_peer_metadata = client.api.services.network.add_peer(self_node_peer)
 
         #if remote_peer_metadata.verify_key != remote_peer.verify_key:
@@ -334,7 +333,7 @@ class NetworkService(AbstractService):
         #    )
 
         # save the remote peer for later
-        result = self.stash.update_peer(credentials, remote_peer)
+        result = self.stash.update_peer(context.credentials, remote_peer)
         if result.is_err():
             return SyftError(message=str(result.err()))
 
@@ -356,7 +355,7 @@ class NetworkService(AbstractService):
         #        )
         #    )
 
-        result = self.stash.update_peer(credentials, peer)
+        result = self.stash.update_peer(context.credentials, peer)
         if result.is_err():
             return SyftError(message=str(result.err()))
         # this way they can match up who we are with who they think we are
@@ -389,11 +388,11 @@ class NetworkService(AbstractService):
 
     @service_method(path="network.verify_route", name="verify_route")
     def verify_route(
-        self, context: AuthedServiceContext, route: NodeRoute
+        self, context: AuthedServiceContext, route: NodeRoute, verify_key: SyftVerifyKey
     ) -> Union[SyftSuccess, SyftError]:
         """Add a Network Node Route"""
         # get the peer asking for route verification from its verify_key
-        peer = self.stash.get_for_verify_key(context.credentials)
+        peer = self.stash.get_for_verify_key(context.credentials, verify_key)
         if peer.is_err():
             return SyftError(message=peer.err())
         peer = peer.ok()
@@ -408,7 +407,7 @@ class NetworkService(AbstractService):
                 )
             )
         peer.update_routes([route])
-        result = self.stash.update_peer(peer)
+        result = self.stash.update_peer(context.credentials, peer)
         if result.is_err():
             return SyftError(message=str(result.err()))
         return SyftSuccess(message="Network Route Verified")
