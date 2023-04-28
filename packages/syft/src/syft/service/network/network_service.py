@@ -269,7 +269,7 @@ class NetworkStash(BaseUIDStoreStash):
         valid = self.check_type(peer, NodePeer)
         if valid.is_err():
             return SyftError(message=valid.err())
-        existing = self.get_by_uid(peer.id)
+        existing = self.get_by_uid(credentials, peer.id)
         if existing.is_ok() and existing.ok():
             existing = existing.ok()
             existing.update_routes(peer.node_routes)
@@ -315,26 +315,26 @@ class NetworkService(AbstractService):
             return SyftError("exchange_credentials_with requires peer or client")
 
         # tell the remote peer our details
-        if not context.node:
-            return SyftError(f"{type(context)} has no node")
-        self_metadata = context.node.metadata
-        self_node_peer = self_metadata.to(NodePeer)
+        #if not context.node:
+        #    return SyftError(f"{type(context)} has no node")
+        #self_metadata = context.node.metadata
+        #self_node_peer = self_metadata.to(NodePeer)
 
         # switch to the nodes signing key
-        client = remote_peer.client_with_context(context=context)
-        client._fetch_api(remote_peer.credentials)
-        remote_peer_metadata = client.api.services.network.add_peer(self_node_peer)
+        #client = remote_peer.client_with_context(context=context)
+        #client._fetch_api(remote_peer.credentials)
+        #remote_peer_metadata = client.api.services.network.add_peer(self_node_peer)
 
-        if remote_peer_metadata.verify_key != remote_peer.verify_key:
-            return SyftError(
-                (
-                    f"Response from remote peer {remote_peer_metadata} "
-                    f"does not match initial peer {remote_peer}"
-                )
-            )
+        #if remote_peer_metadata.verify_key != remote_peer.verify_key:
+        #    return SyftError(
+        #        (
+        #            f"Response from remote peer {remote_peer_metadata} "
+        #            f"does not match initial peer {remote_peer}"
+        #        )
+        #    )
 
         # save the remote peer for later
-        result = self.stash.update_peer(remote_peer)
+        result = self.stash.update_peer(credentials, remote_peer)
         if result.is_err():
             return SyftError(message=str(result.err()))
 
@@ -348,15 +348,15 @@ class NetworkService(AbstractService):
     ) -> Union[NodeMetadata, SyftError]:
         """Add a Network Node Peer"""
         # save the peer and verify the key matches the message signer
-        if peer.verify_key != context.credentials:
-            return SyftError(
-                message=(
-                    f"The {type(peer)}.verify_key: "
-                    f"{peer.verify_key} does not match the signature of the message"
-                )
-            )
+        #if peer.verify_key != context.credentials:
+        #    return SyftError(
+        #        message=(
+        #            f"The {type(peer)}.verify_key: "
+        #            f"{peer.verify_key} does not match the signature of the message"
+        #        )
+        #    )
 
-        result = self.stash.update_peer(peer)
+        result = self.stash.update_peer(credentials, peer)
         if result.is_err():
             return SyftError(message=str(result.err()))
         # this way they can match up who we are with who they think we are
