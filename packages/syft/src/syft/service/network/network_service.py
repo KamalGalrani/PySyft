@@ -417,7 +417,7 @@ class NetworkService(AbstractService):
         self, context: AuthedServiceContext
     ) -> Union[List[NodePeer], SyftError]:
         """Get all Peers"""
-        result = self.stash.get_all(context.credentials)
+        result = self.stash.get_all()
         if result.is_ok():
             peers = result.ok()
             return peers
