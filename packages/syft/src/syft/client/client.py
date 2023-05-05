@@ -381,12 +381,19 @@ class SyftClient:
 
     def exchange_route(self, client: Self) -> None:
         result = self.api.services.network.exchange_credentials_with(client=client)
-        if result:
-            # relative
-            from ..service.network.network_service import connection_to_route
+        if not result:
+            return result
 
-            route = connection_to_route(self.connection)
-            result = self.api.services.network.add_route_for(route=route, client=client)
+        result = client.api.services.network.add_peer(self.peer)
+        if not result:
+            return result
+
+        # relative
+        from ..service.network.network_service import connection_to_route
+
+        route = connection_to_route(self.connection)
+        result = network.api.services.network.verify_route(route, verify_key=self.peer.verify_key)
+
         return result
 
     def apply_to_gateway(self, client: Self) -> None:
